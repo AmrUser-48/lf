@@ -642,6 +642,10 @@ func (e *internalEditor) handleKey(ev *tcell.EventKey, width, height int) bool {
 						e.clampCol()
 						e.status = "top"
 					}
+				case 'r':
+					if len(e.current()) > 0 {
+						e.replaceRune(r)
+					}
 				case 'Z':
 					switch r {
 					case 'Z':
@@ -720,7 +724,7 @@ func (e *internalEditor) handleKey(ev *tcell.EventKey, width, height int) bool {
 			case 'R':
 				e.enterInsert(true)
 			case 'r':
-				e.replaceRune(r)
+				e.pending = 'r'
 			case ':':
 				e.mode = editorCommand
 				e.input = nil
