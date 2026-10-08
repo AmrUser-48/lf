@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/djherbis/times"
@@ -127,13 +128,7 @@ func (f *file) ModTime() time.Time {
 
 func (f *file) IsDir() bool {
 	if f.lazy.entry != nil && !f.isSymlink() {
-		if typ := f.lazy.entry.Type(); typ != 0 {
-			return typ.IsDir()
-		}
-		if info := f.ensureInfo(); info != nil {
-			return info.IsDir()
-		}
-		return false
+		return f.lazy.entry.IsDir()
 	}
 
 	f.ensureLink()
@@ -152,9 +147,7 @@ func (f *file) Sys() any {
 
 func (f *file) modeType() os.FileMode {
 	if f.lazy.entry != nil {
-		if typ := f.lazy.entry.Type(); typ != 0 {
-			return typ
-		}
+		return f.lazy.entry.Type()
 	}
 	if info := f.ensureInfo(); info != nil {
 		return info.Mode()
@@ -243,7 +236,9 @@ func (f *file) extension() string {
 		f.ext = ""
 	} else {
 		name := f.Name()
-		if !(len(name) > 1 && name[0] == '.' && filepath.Ext(name) == "") {
+		if strings.Count(name, ".") == 1 && strings.HasPrefix(name, ".") {
+			f.ext = ""
+		} else {
 			f.ext = filepath.Ext(name)
 		}
 	}
