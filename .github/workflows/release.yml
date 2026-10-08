@@ -5,6 +5,9 @@ on:
     tags:
       - "*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -45,6 +48,7 @@ jobs:
           # - { os: android, arch: "386" }
           # - { os: android, arch: amd64 }
           # - { os: android, arch: arm }
+          # - { os: android, arch: arm64 }
           # - { os: js, arch: wasm }
           # - { os: plan9, arch: "386" }
           # - { os: plan9, arch: amd64 }
@@ -98,5 +102,5 @@ jobs:
         with:
           identifier: gokcehan.lf
           version: ${{ github.ref_name }}
-          installers-regex: '-windows-\w+\.zip$'
+          installers-regex: '-windows-\\w+\\.zip$'
           token: ${{ secrets.WINGET_TOKEN }}
