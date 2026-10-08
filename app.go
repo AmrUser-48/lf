@@ -527,6 +527,9 @@ func (app *app) loop() {
 			app.ui.loadFile(app, false)
 		case <-app.nav.previewTimer.C:
 			app.ui.draw(app.nav)
+		case <-app.ui.fileInfoTimer.C:
+			app.ui.fileInfoReadyState = true
+			app.ui.draw(app.nav)
 		case <-app.nav.preloadTimer.C:
 			app.nav.preload()
 		}
