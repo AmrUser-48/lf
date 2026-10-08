@@ -3,7 +3,7 @@ name: Build filesystem-lazy test
 on:
   push:
     branches:
-      - 'test/fs-lazy-*'
+      - 'test/fs-lazy'
   workflow_dispatch:
 
 permissions:
@@ -30,18 +30,17 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          variant="${BRANCH##*/}"
           mkdir -p dist
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1 \
             go build -trimpath -ldflags="-s -w -X main.gVersion=${BRANCH}" \
-            -o "dist/lf-fs-lazy-${variant}" ./
-          file "dist/lf-fs-lazy-${variant}"
-          ls -lh "dist/lf-fs-lazy-${variant}"
+            -o dist/lf-fs-lazy ./
+          file dist/lf-fs-lazy
+          ls -lh dist/lf-fs-lazy
 
       - name: Upload binary
         uses: actions/upload-artifact@v7
         with:
-          name: lf-fs-lazy-${{ github.ref_name }}
-          path: dist/lf-fs-lazy-*
+          name: lf-fs-lazy-amd64-v1
+          path: dist/lf-fs-lazy
           if-no-files-found: error
           retention-days: 14
