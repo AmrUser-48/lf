@@ -340,7 +340,7 @@ func (e *setExpr) eval(app *app, _ []string) {
 		gOpts.preserve = toks
 	case "pager":
 		gOpts.pager = replaceTilde(e.val)
-		case "previewer":
+	case "previewer":
 		gOpts.previewer = replaceTilde(e.val)
 	case "promptfmt":
 		gOpts.promptfmt = e.val
