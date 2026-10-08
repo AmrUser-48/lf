@@ -178,7 +178,6 @@ func setDefaults() {
 	if envPagerExplicit {
 		gOpts.pager = envPager
 	}
-	gOpts.vkeys["i"] = &execExpr{"$", `$PAGER "$f"`}
 	gOpts.nkeys["w"] = &execExpr{"$", "$SHELL"}
 	gOpts.vkeys["w"] = &execExpr{"$", "$SHELL"}
 
