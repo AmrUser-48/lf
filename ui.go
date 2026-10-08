@@ -60,15 +60,25 @@ func printLength(s string) int {
 			continue
 		}
 
-		gc, w := firstGrapheme(s[i:])
-		i += len(gc)
+		if s[i] >= ' ' && s[i] <= '~' {
+			j := i + 1
+			for j < slen && s[j] >= ' ' && s[j] <= '~' {
+				j++
+			}
+			length += j - i
+			i = j
+			continue
+		}
 
-		if gc == "\t" {
+		r, size := utf8.DecodeRuneInString(s[i:])
+		i += size
+
+		if r == '\t' {
 			length += gOpts.tabstop - length%gOpts.tabstop
-		} else if isPrintable(gc) {
-			length += w
+		} else if r == utf8.RuneError && size == 1 || isControlChar(r) {
+			length++
 		} else {
-			length++ // U+FFFD replacement has width 1
+			length += displaywidth.Rune(r)
 		}
 	}
 
@@ -76,41 +86,45 @@ func printLength(s string) int {
 }
 
 func (win *win) print(screen tcell.Screen, x, y int, st tcell.Style, s string) tcell.Style {
-	var b strings.Builder
 	off := 0
-	put := func() {
-		if b.Len() > 0 {
-			s := b.String()
-			screen.PutStrStyled(win.x+x+off, win.y+y, s, st)
-			off += printLength(s)
-			b.Reset()
-		}
-	}
-
 	slen := len(s)
 	for i := 0; i < slen; {
 		seq := readTermSequence(s[i:])
 		if seq != "" {
-			put()
 			st = applyTermSequence(seq, st)
 			i += len(seq)
 			continue
 		}
 
-		gc := firstGraphemeCluster(s[i:])
-		if gc == "\t" {
-			w := gOpts.tabstop - (x+off+printLength(b.String()))%gOpts.tabstop
-			b.WriteString(strings.Repeat(" ", w))
-		} else if isPrintable(gc) {
-			b.WriteString(gc)
-		} else {
-			b.WriteString("\uFFFD")
+		if s[i] >= ' ' && s[i] <= '~' {
+			j := i + 1
+			for j < slen && s[j] >= ' ' && s[j] <= '~' {
+				j++
+			}
+			screen.PutStrStyled(win.x+x+off, win.y+y, s[i:j], st)
+			off += j - i
+			i = j
+			continue
 		}
 
-		i += len(gc)
-	}
+		if s[i] == '\t' {
+			w := gOpts.tabstop - (x+off)%gOpts.tabstop
+			screen.PutStrStyled(win.x+x+off, win.y+y, strings.Repeat(" ", w), st)
+			off += w
+			i++
+			continue
+		}
 
-	put()
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError && size == 1 || isControlChar(r) {
+			screen.PutStrStyled(win.x+x+off, win.y+y, "\uFFFD", st)
+			off++
+		} else {
+			screen.PutStrStyled(win.x+x+off, win.y+y, string(r), st)
+			off += displaywidth.Rune(r)
+		}
+		i += size
+	}
 	return st
 }
 
