@@ -553,6 +553,7 @@ type ui struct {
 	ruler       *template.Template // compiled `rulerfile`
 	rulerErr    error              // `rulerfile` parse error (if any)
 	currentFile string             // last path passed to `on-select`
+	editor      *internalEditor
 	fileInfoPath string
 	fileInfoReadyState bool
 	fileInfoTimer *time.Timer
@@ -1195,6 +1196,10 @@ func (ui *ui) dirOfWin(nav *nav, wind int) *dir {
 }
 
 func (ui *ui) draw(nav *nav) {
+	if ui.editor != nil {
+		ui.editor.draw(ui)
+		return
+	}
 	if ui.pager != nil {
 		ui.pager.draw(ui)
 		return
