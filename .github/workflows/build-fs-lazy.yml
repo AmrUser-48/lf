@@ -24,7 +24,7 @@ jobs:
       - name: Test
         run: go test ./...
 
-      - name: Build
+      - name: Build Linux binary
         shell: bash
         env:
           BRANCH: ${{ github.ref_name }}
@@ -33,14 +33,28 @@ jobs:
           mkdir -p dist
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1 \
             go build -trimpath -ldflags="-s -w -X main.gVersion=${BRANCH}" \
-            -o dist/lf-fs-lazy ./
-          file dist/lf-fs-lazy
-          ls -lh dist/lf-fs-lazy
+            -o dist/lf-fs-lazy-linux-amd64 ./
+          file dist/lf-fs-lazy-linux-amd64
+          ls -lh dist/lf-fs-lazy-linux-amd64
 
-      - name: Upload binary
+      - name: Build Windows binary
+        shell: bash
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GOAMD64=v1 \
+            go build -trimpath -ldflags="-s -w -X main.gVersion=${BRANCH}" \
+            -o dist/lf-fs-lazy-windows-amd64.exe ./
+          file dist/lf-fs-lazy-windows-amd64.exe
+          ls -lh dist/lf-fs-lazy-windows-amd64.exe
+
+      - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
           name: lf-fs-lazy-amd64-v1
-          path: dist/lf-fs-lazy
+          path: |
+            dist/lf-fs-lazy-linux-amd64
+            dist/lf-fs-lazy-windows-amd64.exe
           if-no-files-found: error
           retention-days: 14
