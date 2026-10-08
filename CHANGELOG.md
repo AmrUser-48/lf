@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Added`
 - `Fixed`
 
+## r42-fs-lazy.1
+
+### Added
+
+- Optional internal vi-style editor on `e`, enabled with `set editor internal`.
+- BusyBox vi-style `ZZ` save-and-exit and `ZQ` discard-and-exit behavior; `F10` discards and exits.
+- Built-in less-style viewer on `i`, with Alt+`j/k/f/b` navigation.
+- External pager/editor configuration remains available.
+
+### Changed
+
+- Directory entries use lazy filesystem metadata to reduce unnecessary per-entry stat calls.
+- File metadata in the bottom status line is delayed until the cursor remains on an entry for 1.5 seconds.
+
+### Fixed
+
+- Pager and editor terminal event routing now works independently of the main file-manager keymap.
+
 ## Unreleased
 
 ### Added
