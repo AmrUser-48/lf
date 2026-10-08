@@ -141,31 +141,31 @@ func (im iconMap) get(f *file) iconDef {
 	var key string
 
 	switch {
-	case f.linkState == working && !im.useLinkTarget:
+	case f.linkState == working && !sm.useLinkTarget:
 		key = "ln"
 	case f.linkState == broken:
 		key = "or"
-	case f.IsDir() && f.Mode()&os.ModeSticky != 0 && f.Mode()&0o002 != 0:
+	case !lazyFSAggressiveStyle && f.IsDir() && f.Mode()&os.ModeSticky != 0 && f.Mode()&0o002 != 0:
 		key = "tw"
-	case f.IsDir() && f.Mode()&0o002 != 0:
+	case !lazyFSAggressiveStyle && f.IsDir() && f.Mode()&0o002 != 0:
 		key = "ow"
-	case f.IsDir() && f.Mode()&os.ModeSticky != 0:
+	case !lazyFSAggressiveStyle && f.IsDir() && f.Mode()&os.ModeSticky != 0:
 		key = "st"
 	case f.IsDir():
 		key = "di"
-	case f.Mode()&os.ModeNamedPipe != 0:
+	case f.modeType()&os.ModeNamedPipe != 0:
 		key = "pi"
-	case f.Mode()&os.ModeSocket != 0:
+	case f.modeType()&os.ModeSocket != 0:
 		key = "so"
-	case f.Mode()&os.ModeCharDevice != 0:
+	case f.modeType()&os.ModeCharDevice != 0:
 		key = "cd"
-	case f.Mode()&os.ModeDevice != 0:
+	case f.modeType()&os.ModeDevice != 0:
 		key = "bd"
-	case f.Mode()&os.ModeSetuid != 0:
+	case !lazyFSAggressiveStyle && f.Mode()&os.ModeSetuid != 0:
 		key = "su"
-	case f.Mode()&os.ModeSetgid != 0:
+	case !lazyFSAggressiveStyle && f.Mode()&os.ModeSetgid != 0:
 		key = "sg"
-	case isExecutable(f.FileInfo):
+	case !lazyFSAggressiveStyle && isExecutable(f):
 		key = "ex"
 	}
 
