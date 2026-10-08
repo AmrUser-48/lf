@@ -43,6 +43,7 @@ type file struct {
 	customInfo  string    // property defined via `addcustominfo`
 	ext         string    // file extension (including the dot)
 	err         error     // potential error returned by [os.Lstat]
+	lazy        lazyFileMeta
 }
 
 func newFile(path string) *file {
@@ -143,21 +144,11 @@ func (fs *fakeStat) IsDir() bool        { return false }
 func (fs *fakeStat) Sys() any           { return nil }
 
 func readdir(path string) ([]*file, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
+	entries, err := os.ReadDir(path)
+	files := make([]*file, 0, len(entries))
+	for _, entry := range entries {
+		files = append(files, newFileEntry(filepath.Join(path, entry.Name()), entry))
 	}
-	names, err := f.Readdirnames(-1)
-	f.Close()
-
-	files := make([]*file, 0, len(names))
-	for _, fname := range names {
-		file := newFile(filepath.Join(path, fname))
-		if !os.IsNotExist(file.err) {
-			files = append(files, file)
-		}
-	}
-
 	return files, err
 }
 
@@ -277,7 +268,7 @@ func (dir *dir) sort() {
 	case sizeSort:
 		sizeVal := func(f *file) int64 {
 			if f.IsDir() && dir.dircounts {
-				return int64(f.dirCount)
+				return int64(f.ensureDirCount())
 			}
 			if f.dirSize >= 0 {
 				return f.dirSize
@@ -293,20 +284,26 @@ func (dir *dir) sort() {
 		})
 	case atimeSort:
 		applySort(func(f1, f2 *file) int {
+			f1.ensureTimes()
+			f2.ensureTimes()
 			return f1.accessTime.Compare(f2.accessTime)
 		})
 	case btimeSort:
 		applySort(func(f1, f2 *file) int {
+			f1.ensureTimes()
+			f2.ensureTimes()
 			return f1.birthTime.Compare(f2.birthTime)
 		})
 	case ctimeSort:
 		applySort(func(f1, f2 *file) int {
+			f1.ensureTimes()
+			f2.ensureTimes()
 			return f1.changeTime.Compare(f2.changeTime)
 		})
 	case extSort:
 		applySort(func(f1, f2 *file) int {
-			ext1 := normalize(f1.ext)
-			ext2 := normalize(f2.ext)
+			ext1 := normalize(f1.extension())
+			ext2 := normalize(f2.extension())
 			if ext1 != ext2 {
 				return cmp.Compare(ext1, ext2)
 			}
