@@ -235,7 +235,7 @@ func (sm styleMap) get(f *file) tcell.Style {
 	var key string
 
 	switch {
-	case f.linkState == working && !im.useLinkTarget:
+	case f.linkState == working && !sm.useLinkTarget:
 		key = "ln"
 	case f.linkState == broken:
 		key = "or"
