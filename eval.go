@@ -1113,6 +1113,11 @@ func (e *callExpr) eval(app *app, _ []string) {
 			app.ui.echoerr("less: no file selected")
 			return
 		}
+		if gOpts.pager != "" {
+			cmd := exec.Command(gOpts.pager, path)
+			app.runCmdSync(cmd, false)
+			return
+		}
 		if err := app.ui.openPager(path); err != nil {
 			app.ui.echoerrf("less: %s", err)
 			return
