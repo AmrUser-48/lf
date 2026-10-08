@@ -193,7 +193,7 @@ func (ui *ui) handlePagerEvent(ev tcell.Event) bool {
 		ui.pager.fill(len(ui.pager.lines) + pagerReadAhead)
 		ui.pager.top = ui.pager.maxTop(viewport)
 	case tcell.KeyRune:
-		switch key.Rune() {
+		switch key.Str() {
 		case 'q':
 			ui.closePager()
 		case 'k':
