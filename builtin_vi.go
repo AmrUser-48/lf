@@ -125,7 +125,7 @@ func (v *builtinVi) handleNormal(k string) {
 	case "D":r:=[]rune(v.lines[v.row]);if v.col<len(r){v.lines[v.row]=string(r[:v.col]);v.dirty=true}
 	case "u":v.status="undo is not available in the minimal built-in vi"
 	case "G":v.row=len(v.lines)-1;v.col=0
-	case "Z":v.status="Z?"; // second Z handled by command state below
+	case "Z": if v.status=="Z?" { v.save(); v.quit=true } else { v.status="Z?" }
 	case ":":v.mode=viCommand;v.status=":"
 	case "enter":v.row=min(v.row+1,len(v.lines)-1)
 	case "pgup":v.row=max(0,v.row-10)
