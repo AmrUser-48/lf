@@ -1,14 +1,14 @@
 # LF
 
-[Doc](doc.md)
+[Documentation](doc.md)
 | [Wiki](https://github.com/gokcehan/lf/wiki)
 | [#lf:matrix.org](https://matrix.to/#/#lf:matrix.org) (with IRC bridge)
 
 [![Go Build](https://github.com/gokcehan/lf/actions/workflows/go.yml/badge.svg)](https://github.com/gokcehan/lf/actions/workflows/go.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gokcehan/lf)](https://goreportcard.com/report/github.com/gokcehan/lf)
 
-`lf` (as in "list files") is a terminal file manager written in Go with a heavy inspiration from [`ranger`](https://github.com/ranger/ranger) file manager.
-See [faq](https://github.com/gokcehan/lf/wiki/FAQ) for more information and [tutorial](https://github.com/gokcehan/lf/wiki/Tutorial) for a gentle introduction with screencasts.
+`lf` ("list files") is a terminal file manager written in Go, inspired by
+[ranger](https://github.com/ranger/ranger). It is designed to stay small,
+scriptable, and fast.
 
 ![icons-and-border](https://github.com/user-attachments/assets/d5623462-05ab-4921-aeb3-d377d4732f9e)
 ![image-preview](https://github.com/user-attachments/assets/9ff42a21-19dd-42fa-8407-5d055aa9d561)
@@ -16,64 +16,86 @@ See [faq](https://github.com/gokcehan/lf/wiki/FAQ) for more information and [tut
 
 ## Features
 
-- Cross-platform (Linux, macOS, BSDs, Windows)
-- Single binary without any runtime dependencies
-- Fast startup and low memory footprint due to native code and static binaries
-- Asynchronous IO operations to avoid UI locking
-- Server/client architecture and remote commands to manage multiple instances
-- Extendable and configurable with shell commands
-- Customizable keybindings (vi and readline defaults)
-- A reasonable set of other features (see the [documentation](doc.md))
+- Cross-platform: Linux, macOS, BSDs, and Windows
+- Single native binary with no runtime dependencies
+- Asynchronous filesystem and preview work to keep the UI responsive
+- Server/client architecture for multiple connected instances
+- Configurable commands, shell integration, keybindings, colors, and icons
+- Vi-style navigation with Normal and Visual modes
 
-## Non-Features
+## This fork
 
-- Tabs or windows (better handled by window manager or terminal multiplexer)
-- Builtin pager/editor (better handled by your pager/editor of choice)
-- Builtin commands for file operations (better handled by the underlying shell tools including but not limited to `mkdir`, `touch`, `chmod`, `chown`, `chgrp`, and `ln`)
+This branch keeps the upstream `lf` design while adding:
+
+- Lazy filesystem metadata: ordinary directory entries can be displayed using `DirEntry` information without an immediate `Lstat` for every file.
+- Delayed file metadata in the bottom status line, fetched after the cursor remains on a file for 1.5 seconds.
+- Built-in less-style text viewer on `i`. When no explicit pager is configured it stays inside `lf`; `set pager less` or `PAGER=less` uses external `less`.
+- Pager navigation with `j/k`, arrows, PageUp/PageDown, Space/`b`, `g/G`, and Alt+`j/k/f/b`.
+- Optional internal vi editor on `e` with `set editor internal`. It follows BusyBox `vi` command conventions, including `ZZ` save-and-exit and `ZQ` discard-and-exit. `F10` is also a discard-and-exit shortcut.
+- The normal external editor remains available through `$EDITOR`, including BusyBox `vi`.
+
+The internal editor is a fresh Go implementation of vi-style behavior; BusyBox source is not included in this MIT-licensed fork.
 
 ## Installation
 
-See [packages](https://github.com/gokcehan/lf/wiki/Packages) for community maintained packages.
+Pre-built Linux and Windows binaries are published in the
+[releases](https://github.com/AmrUser-48/lf/releases).
 
-See [releases](https://github.com/gokcehan/lf/releases) for pre-built binaries.
-
-Building from the source requires [Go](https://go.dev/).
+To build from source, install [Go](https://go.dev/).
 
 On Unix:
 
 ```bash
-env CGO_ENABLED=0 go install -trimpath -ldflags="-s -w" github.com/gokcehan/lf@latest
+env CGO_ENABLED=0 go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest
 ```
 
 On Windows `cmd`:
 
 ```cmd
 set CGO_ENABLED=0
-go install -trimpath -ldflags="-s -w" github.com/gokcehan/lf@latest
+go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest
 ```
 
-On Windows `PowerShell`:
+On Windows PowerShell:
 
 ```powershell
 $env:CGO_ENABLED = '0'
-go install -trimpath -ldflags="-s -w" github.com/gokcehan/lf@latest
+go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest
 ```
 
 ## Usage
 
-After the installation `lf` command should start the application in the current directory.
+Run `lf` to start in the current directory.
 
-Run `lf -help` to see [command line options](doc.md#options).
+The default internal shortcuts added by this fork are:
 
-Run `lf -doc` to see the [documentation](doc.md).
+```
+e       edit current file
+i       view current file
+ZZ      save and exit internal vi
+ZQ      discard and exit internal vi
+F10     discard and exit internal vi
 
-See [etc](etc) directory to integrate `lf` to your shell and/or editor.
-Example configuration files along with example colors and icons files can also be found in this directory.
+Alt+j   scroll viewer down one line
+Alt+k   scroll viewer up one line
+Alt+F   viewer page down
+Alt+B   viewer page up
+```
 
-See [integrations](https://github.com/gokcehan/lf/wiki/Integrations) to integrate `lf` to other tools.
+Enable the internal editor with:
 
-See [tips](https://github.com/gokcehan/lf/wiki/Tips) for more examples.
+```
+set editor internal
+```
+
+Leave the editor unset (or set it to `external`) to keep using `$EDITOR`.
+Set `PAGER` or `pager` explicitly when you want an external pager.
+
+Run `lf -help` for command-line options and `lf -doc` for the full
+documentation.
+
+See [etc](etc) for shell/editor integrations and example configuration files.
 
 ## Contributing
 
-See [contributing](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
