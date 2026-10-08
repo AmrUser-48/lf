@@ -574,6 +574,7 @@ func newUI(screen tcell.Screen) *ui {
 		icons:       parseIcons(),
 		currentFile: "",
 		sxScreen:    sixelScreen{},
+		fileInfoTimer:  time.NewTimer(time.Hour),
 	}
 	ui.fileInfoTimer.Stop()
 	ui.ruler, ui.rulerErr = parseRuler(gOpts.rulerfile)
