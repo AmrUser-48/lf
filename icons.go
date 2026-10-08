@@ -145,7 +145,7 @@ func (im iconMap) get(f *file) iconDef {
 		key = "ln"
 	case f.linkState == broken:
 		key = "or"
-	case !lazyFSAggressiveStyle && f.IsDir() && f.Mode()&os.ModeSticky != 0 && f.Mode()&0o002 != 0:
+	case f.IsDir() && f.Mode()&os.ModeSticky != 0 && f.Mode()&0o002 != 0:
 		key = "tw"
 	case !lazyFSAggressiveStyle && f.IsDir() && f.Mode()&0o002 != 0:
 		key = "ow"
