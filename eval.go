@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -1115,6 +1116,9 @@ func (e *callExpr) eval(app *app, _ []string) {
 		}
 		if gOpts.pager != "" {
 			cmd := exec.Command(gOpts.pager, path)
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
 			app.runCmdSync(cmd, false)
 			return
 		}
