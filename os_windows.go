@@ -155,7 +155,11 @@ func setDefaults() {
 	gOpts.cmds["open"] = &execExpr{"&", "%OPENER% %f%"}
 	gOpts.nkeys["e"] = &execExpr{"$", "%EDITOR% %f%"}
 	gOpts.vkeys["e"] = &execExpr{"$", "%EDITOR% %f%"}
-	gOpts.nkeys["i"] = &execExpr{"!", "%PAGER% %f%"}
+	gOpts.nkeys["i"] = &callExpr{"less", nil, 1}
+	gOpts.vkeys["i"] = &callExpr{"less", nil, 1}
+	if envPagerExplicit {
+		gOpts.pager = envPager
+	}
 	gOpts.vkeys["i"] = &execExpr{"!", "%PAGER% %f%"}
 	gOpts.nkeys["w"] = &execExpr{"$", "%SHELL%"}
 	gOpts.vkeys["w"] = &execExpr{"$", "%SHELL%"}
