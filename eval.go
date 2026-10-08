@@ -1098,6 +1098,25 @@ func (e *callExpr) eval(app *app, _ []string) {
 		app.ui.loadFile(app, true)
 		restartIncCmd(app)
 		onChdir(app)
+	case "less":
+		path := ""
+		if len(e.args) > 1 {
+			app.ui.echoerr("less: too many arguments")
+			return
+		}
+		if len(e.args) == 1 {
+			path = replaceTilde(e.args[0])
+		} else if curr := app.nav.currFile(); curr != nil {
+			path = curr.path
+		}
+		if path == "" {
+			app.ui.echoerr("less: no file selected")
+			return
+		}
+		if err := app.ui.openPager(path); err != nil {
+			app.ui.echoerrf("less: %s", err)
+			return
+		}
 	case "open":
 		curr := app.nav.currFile()
 		if curr == nil {
