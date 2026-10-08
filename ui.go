@@ -556,6 +556,7 @@ type ui struct {
 	fileInfoPath string
 	fileInfoReadyState bool
 	fileInfoTimer *time.Timer
+	pager         *pager
 	pasteEvent  bool               // whether paste event is active (to ignore pasted input in Normal mode)
 }
 
@@ -1194,6 +1195,11 @@ func (ui *ui) dirOfWin(nav *nav, wind int) *dir {
 }
 
 func (ui *ui) draw(nav *nav) {
+	if ui.pager != nil {
+		ui.pager.draw(ui)
+		return
+	}
+
 	st := tcell.StyleDefault
 	context := dirContext{selections: nav.selections, clipboard: nav.clipboard, tags: nav.tags}
 
