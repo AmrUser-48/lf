@@ -28,7 +28,7 @@ See [faq](https://github.com/gokcehan/lf/wiki/FAQ) for more information and [tut
 ## Non-Features
 
 - Tabs or windows (better handled by window manager or terminal multiplexer)
-- Builtin pager/editor (better handled by your pager/editor of choice)
+- Built-in BusyBox-style vi editor and lightweight less pager
 - Builtin commands for file operations (better handled by the underlying shell tools including but not limited to `mkdir`, `touch`, `chmod`, `chown`, `chgrp`, and `ln`)
 
 ## Installation
