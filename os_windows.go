@@ -17,6 +17,7 @@ var (
 	envOpener = os.Getenv("OPENER")
 	envEditor = os.Getenv("VISUAL")
 	envPager  = os.Getenv("PAGER")
+	envPagerExplicit = os.Getenv("PAGER") != ""
 	envShell  = os.Getenv("SHELL")
 )
 
