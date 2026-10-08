@@ -223,6 +223,8 @@ The following commands are provided by lf:
     tty-write
     visual                   (default 'V')
 
+The default `e` key opens the built-in BusyBox-style vi editor. The default `i` key opens the built-in less pager. The pager supports `Alt-j`/`Alt-k` for line scrolling and `Alt-F`/`Alt-B` for page scrolling. In the built-in vi, `ZZ` or `:wq` saves and exits, `:q` exits without changes, `:q!` forces exit, and `F10` exits.
+
 The following Visual mode commands are provided by lf:
 
     visual-accept            (default 'V')
