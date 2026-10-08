@@ -65,7 +65,7 @@ func (p *pager) fill(target int) {
 	}
 
 	for len(p.lines) < target {
-		line, err := p.reader.ReadString('\\n')
+		line, err := p.reader.ReadString('\n')
 		if len(line) > 0 {
 			if len(line) > pagerMaxLineBytes {
 				line = line[:pagerMaxLineBytes]
@@ -79,8 +79,8 @@ func (p *pager) fill(target int) {
 				}
 			}
 
-			line = strings.TrimSuffix(line, "\\n")
-			line = strings.TrimSuffix(line, "\\r")
+			line = strings.TrimSuffix(line, "\n")
+			line = strings.TrimSuffix(line, "\r")
 			p.lines = append(p.lines, sanitizePreview(line))
 		}
 
