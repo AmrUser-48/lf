@@ -193,7 +193,23 @@ func (ui *ui) handlePagerEvent(ev tcell.Event) bool {
 		ui.pager.fill(len(ui.pager.lines) + pagerReadAhead)
 		ui.pager.top = ui.pager.maxTop(viewport)
 	case tcell.KeyRune:
-		switch key.Str() {
+		keyName := key.Str()
+		if key.Modifiers()&tcell.ModAlt != 0 {
+			switch strings.ToLower(keyName) {
+			case "j":
+				ui.pager.move(1, viewport)
+			case "k":
+				ui.pager.move(-1, viewport)
+			case "f":
+				ui.pager.move(viewport, viewport)
+			case "b":
+				ui.pager.move(-viewport, viewport)
+			default:
+				return true
+			}
+			break
+		}
+		switch keyName {
 		case 'q':
 			ui.closePager()
 		case 'k':
