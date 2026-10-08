@@ -239,7 +239,7 @@ func (sm styleMap) get(f *file) tcell.Style {
 		key = "ln"
 	case f.linkState == broken:
 		key = "or"
-	case f.IsDir() && f.Mode()&os.ModeSticky != 0 && f.Mode()&0o002 != 0:
+	case f.IsDir() && f.FileInfo != nil && f.FileInfo != nil && f.Mode()&os.ModeSticky != 0 && f.FileInfo != nil && f.Mode()&0o002 != 0:
 		key = "tw"
 	case !lazyFSAggressiveStyle && f.IsDir() && f.Mode()&0o002 != 0:
 		key = "ow"
@@ -255,11 +255,11 @@ func (sm styleMap) get(f *file) tcell.Style {
 		key = "cd"
 	case f.modeType()&os.ModeDevice != 0:
 		key = "bd"
-	case !lazyFSAggressiveStyle && f.Mode()&os.ModeSetuid != 0:
+	case !lazyFSAggressiveStyle && f.FileInfo != nil && f.Mode()&os.ModeSetuid != 0:
 		key = "su"
-	case !lazyFSAggressiveStyle && f.Mode()&os.ModeSetgid != 0:
+	case !lazyFSAggressiveStyle && f.FileInfo != nil && f.Mode()&os.ModeSetgid != 0:
 		key = "sg"
-	case !lazyFSAggressiveStyle && isExecutable(f):
+	case !lazyFSAggressiveStyle && f.FileInfo != nil && isExecutable(f.FileInfo):
 		key = "ex"
 	}
 
