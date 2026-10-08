@@ -23,6 +23,7 @@ import (
 )
 
 const previewLoadingDelay = 100 * time.Millisecond
+const fileInfoDelay = 1500 * time.Millisecond
 
 type win struct {
 	w, h, x, y int
@@ -222,9 +223,9 @@ func fileInfo(f *file, d *dir, userWidth, groupWidth, customWidth int) (string, 
 		case "perm":
 			info.WriteString(" " + permString(f.Mode()))
 		case "user":
-			fmt.Fprintf(&info, " %-*s", userWidth, userName(f.FileInfo))
+			fmt.Fprintf(&info, " %-*s", userWidth, userName(f))
 		case "group":
-			fmt.Fprintf(&info, " %-*s", groupWidth, groupName(f.FileInfo))
+			fmt.Fprintf(&info, " %-*s", groupWidth, groupName(f))
 		case "custom":
 			// Prevent useless spacers, as `custom` allows empty values
 			if customWidth < 1 {
@@ -552,6 +553,9 @@ type ui struct {
 	ruler       *template.Template // compiled `rulerfile`
 	rulerErr    error              // `rulerfile` parse error (if any)
 	currentFile string             // last path passed to `on-select`
+	fileInfoPath string
+	fileInfoReadyState bool
+	fileInfoTimer *time.Timer
 	pasteEvent  bool               // whether paste event is active (to ignore pasted input in Normal mode)
 }
 
@@ -571,6 +575,7 @@ func newUI(screen tcell.Screen) *ui {
 		currentFile: "",
 		sxScreen:    sixelScreen{},
 	}
+	ui.fileInfoTimer.Stop()
 	ui.ruler, ui.rulerErr = parseRuler(gOpts.rulerfile)
 
 	return ui
@@ -733,9 +738,35 @@ func formatRulerOpt(name, val string) string {
 }
 
 // Deprecated: Will eventually be replaced by drawRulerFile
+func (ui *ui) fileInfoReady(nav *nav) bool {
+	curr := nav.currFile()
+	path := ""
+	if curr != nil {
+		path = curr.path
+	}
+	if path != ui.fileInfoPath {
+		ui.fileInfoPath = path
+		ui.fileInfoReadyState = false
+		if !ui.fileInfoTimer.Stop() {
+			select {
+			case <-ui.fileInfoTimer.C:
+			default:
+			}
+		}
+		if path != "" {
+			ui.fileInfoTimer.Reset(fileInfoDelay)
+		}
+	}
+	return ui.fileInfoReadyState
+}
+
 func (ui *ui) drawStat(nav *nav) {
 	if ui.msg != "" {
 		ui.msgWin.print(ui.screen, 0, 0, tcell.StyleDefault, ui.msg)
+		return
+	}
+
+	if !ui.fileInfoReady(nav) {
 		return
 	}
 
@@ -771,6 +802,7 @@ func (ui *ui) drawStat(nav *nav) {
 	replace("%s", humanize(curr.Size()))
 	replace("%S", fmt.Sprintf("%5s", humanize(curr.Size())))
 	replace("%t", curr.ModTime().Format(gOpts.timefmt))
+	curr.ensureLinkTarget()
 	replace("%l", sanitizeName(curr.linkTarget))
 
 	var fileInfo strings.Builder
@@ -904,12 +936,14 @@ func (ui *ui) drawRulerFile(nav *nav) {
 
 	var stat *statData
 	curr := nav.currFile()
-	if curr != nil {
+	if curr != nil && ui.fileInfoReady(nav) {
+		curr.ensureTimes()
+		curr.ensureLinkTarget()
 		if curr.err == nil {
 			stat = &statData{
 				Path:        sanitizeName(curr.path),
 				Name:        sanitizeName(curr.Name()),
-				Extension:   sanitizeName(curr.ext),
+				Extension:   sanitizeName(curr.extension()),
 				Size:        curr.Size(),
 				DirSize:     curr.dirSize,
 				DirCount:    curr.dirCount,
