@@ -153,8 +153,9 @@ func shellKill(cmd *exec.Cmd) error {
 
 func setDefaults() {
 	gOpts.cmds["open"] = &execExpr{"&", "%OPENER% %f%"}
-	gOpts.nkeys["e"] = &execExpr{"$", "%EDITOR% %f%"}
-	gOpts.vkeys["e"] = &execExpr{"$", "%EDITOR% %f%"}
+	gOpts.cmds["edit-external"] = &execExpr{"$", "%EDITOR% %f%"}
+	gOpts.nkeys["e"] = &callExpr{"edit", nil, 1}
+	gOpts.vkeys["e"] = &callExpr{"edit", nil, 1}
 	gOpts.nkeys["i"] = &callExpr{"less", nil, 1}
 	gOpts.vkeys["i"] = &callExpr{"less", nil, 1}
 	if envPagerExplicit {
