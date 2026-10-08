@@ -127,6 +127,7 @@ var gOpts struct {
 	preview          bool
 	previewer        string
 	pager            string
+	editor           string
 	promptfmt        string
 	ratios           []int
 	relativenumber   bool
