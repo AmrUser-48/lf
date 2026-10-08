@@ -785,7 +785,8 @@ func (ui *ui) handleEditorEvent(ev tcell.Event) bool {
 	if !ok {
 		return true
 	}
-	if ui.editor.handleKey(key, ui.screen.Size()) {
+	w, h := ui.screen.Size()
+	if ui.editor.handleKey(key, w, h) {
 		ui.closeEditor()
 	}
 	return true
