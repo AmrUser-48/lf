@@ -344,6 +344,7 @@ func init() {
 		"l":          &callExpr{"open", nil, 1},
 		"<right>":    &callExpr{"open", nil, 1},
 		"q":          &callExpr{"quit", nil, 1},
+		"<f-3>":       &callExpr{"less", nil, 1},
 		"gg":         &callExpr{"top", nil, 1},
 		"<home>":     &callExpr{"top", nil, 1},
 		"G":          &callExpr{"bottom", nil, 1},
@@ -449,6 +450,7 @@ func init() {
 	}
 
 	gOpts.cmds = make(map[string]expr)
+	gOpts.cmds["less"] = &callExpr{"less", nil, 1}
 	gOpts.user = make(map[string]string)
 
 	gLocalOpts.dircounts = make(map[string]bool)
