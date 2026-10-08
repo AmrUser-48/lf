@@ -1,5 +1,7 @@
 package main
 
+// The internal editor follows the modal command conventions of BusyBox vi.
+// It is a fresh Go implementation and does not include BusyBox source.
 import (
 	"bytes"
 	"fmt"
@@ -65,8 +67,7 @@ func openInternalEditor(path string) (*internalEditor, error) {
 		return nil, fmt.Errorf("file is not valid UTF-8")
 	}
 
-	eol := "
-"
+	eol := "\n"
 	if bytes.Contains(data, []byte("\r\n")) {
 		eol = "\r\n"
 	}
@@ -535,13 +536,7 @@ func (e *internalEditor) executeCommand(cmd string) bool {
 
 func (e *internalEditor) handleKey(ev *tcell.EventKey, width, height int) bool {
 	if ev.Key() == tcell.KeyF10 {
-		if e.modified {
-			e.mode = editorNormal
-			e.input = nil
-			e.pending = 0
-			e.status = "modified: use ZZ or :wq to save, :q! to discard"
-			return false
-		}
+		e.modified = false
 		return true
 	}
 
@@ -790,11 +785,9 @@ func (ui *ui) handleEditorEvent(ev tcell.Event) bool {
 	if !ok {
 		return true
 	}
-	_, h := ui.screen.Size()
 	if ui.editor.handleKey(key, ui.screen.Size()) {
 		ui.closeEditor()
 	}
-	_ = h
 	return true
 }
 
