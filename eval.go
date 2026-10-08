@@ -340,6 +340,14 @@ func (e *setExpr) eval(app *app, _ []string) {
 		gOpts.preserve = toks
 	case "pager":
 		gOpts.pager = replaceTilde(e.val)
+	case "editor":
+		switch e.val {
+		case "", "external", "internal":
+			gOpts.editor = e.val
+		default:
+			app.ui.echoerr("editor: value should be empty, 'external', or 'internal'")
+			return
+		}
 	case "previewer":
 		gOpts.previewer = replaceTilde(e.val)
 	case "promptfmt":
@@ -1101,6 +1109,36 @@ func (e *callExpr) eval(app *app, _ []string) {
 		app.ui.loadFile(app, true)
 		restartIncCmd(app)
 		onChdir(app)
+	case "edit":
+		if len(e.args) > 1 {
+			app.ui.echoerr("edit: too many arguments")
+			return
+		}
+		path := ""
+		if len(e.args) == 1 {
+			path = replaceTilde(e.args[0])
+		} else if curr := app.nav.currFile(); curr != nil {
+			path = curr.path
+			if curr.IsDir() {
+				app.ui.echoerr("edit: selected path is a directory")
+				return
+			}
+		}
+		if path == "" {
+			app.ui.echoerr("edit: no file selected")
+			return
+		}
+		if gOpts.editor == "internal" {
+			if err := app.ui.openEditor(path); err != nil {
+				app.ui.echoerrf("edit: %s", err)
+			}
+			return
+		}
+		if cmd, ok := gOpts.cmds["edit-external"]; ok {
+			cmd.eval(app, e.args)
+			return
+		}
+		app.ui.echoerr("edit: external editor command is unavailable")
 	case "less":
 		path := ""
 		if len(e.args) > 1 {
