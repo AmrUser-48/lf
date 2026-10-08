@@ -497,6 +497,10 @@ func (app *app) loop() {
 				}
 			}
 		case ev := <-app.ui.evChan:
+			if app.ui.handlePagerEvent(ev) {
+				app.ui.draw(app.nav)
+				continue
+			}
 			e := app.ui.readEvent(ev, app.nav)
 			if e == nil {
 				continue
@@ -506,6 +510,9 @@ func (app *app) loop() {
 			for {
 				select {
 				case ev := <-app.ui.evChan:
+					if app.ui.handlePagerEvent(ev) {
+						continue
+					}
 					e = app.ui.readEvent(ev, app.nav)
 					if e == nil {
 						continue
