@@ -22,6 +22,18 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Install helper build dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential libncurses-dev curl bzip2
+
+      - name: Build bundled tools and collect corresponding source
+        env:
+          SOURCE_OUT: dist/third-party-source
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          ./scripts/build-internal-tools.sh
+          tar -czf dist/lf-third-party-sources.tar.gz -C dist/third-party-source .
+
       - name: Test
         run: go test ./...
 
@@ -63,4 +75,5 @@ jobs:
             --title "lf $TAG" \
             --generate-notes \
             dist/lf-linux-amd64 \
-            dist/lf-windows-amd64.exe
+            dist/lf-windows-amd64.exe \
+            dist/lf-third-party-sources.tar.gz

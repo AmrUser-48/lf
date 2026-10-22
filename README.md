@@ -17,7 +17,7 @@ scriptable, and fast.
 ## Features
 
 - Cross-platform: Linux, macOS, BSDs, and Windows
-- Single native binary with no runtime dependencies
+- Single native binary; Linux amd64 release embeds statically linked upstream terminal tools
 - Asynchronous filesystem and preview work to keep the UI responsive
 - Server/client architecture for multiple connected instances
 - Configurable commands, shell integration, keybindings, colors, and icons
@@ -28,13 +28,12 @@ scriptable, and fast.
 This branch keeps the upstream `lf` design while adding:
 
 - Lazy filesystem metadata: ordinary directory entries can be displayed using `DirEntry` information without an immediate `Lstat` for every file.
-- Delayed file metadata in the bottom status line, fetched after the cursor remains on a file for 1.5 seconds.
-- Built-in less-style text viewer on `i`. When no explicit pager is configured it stays inside `lf`; `set pager less` or `PAGER=less` uses external `less`.
-- Pager navigation with `j/k`, arrows, PageUp/PageDown, Space/`b`, `g/G`, and Alt+`j/k/f/b`.
-- Optional internal vi editor on `e` with `set editor internal`. It follows BusyBox `vi` command conventions, including `ZZ` save-and-exit and `ZQ` discard-and-exit. `F10` is also a discard-and-exit shortcut.
-- The normal external editor remains available through `$EDITOR`, including BusyBox `vi`.
+- The default `i` viewer runs genuine upstream GNU `less`, bundled into Linux amd64 releases.
+- `set pager PROGRAM` continues to select an explicitly configured external pager.
+- `set editor internal` runs genuine BusyBox `vi`; the Linux amd64 release bundles the upstream BusyBox executable.
+- Both tools take over the terminal while running and return to `lf` on exit; they are not Go-language imitations.
 
-The internal editor is a fresh Go implementation of vi-style behavior; BusyBox source is not included in this MIT-licensed fork.
+The bundled BusyBox and GNU less programs are separate executable payloads, not linked into the Go application. Their source archives, build configuration, build script, and license information are provided in the release's `lf-third-party-sources.tar.gz` asset. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Installation
 
@@ -71,26 +70,25 @@ The default internal shortcuts added by this fork are:
 
 ```
 e       edit current file
-i       view current file
-ZZ      save and exit internal vi
-ZQ      discard and exit internal vi
-F10     discard and exit internal vi
-
-Alt+j   scroll viewer down one line
-Alt+k   scroll viewer up one line
-Alt+F   viewer page down
-Alt+B   viewer page up
+i       view current file with upstream GNU less
 ```
 
-Enable the internal editor with:
-
+Enable the bundled BusyBox `vi` editor with:
 
 ```
 set editor internal
 ```
 
-Leave the editor unset (or set it to `external`) to keep using `$EDITOR`.
-Set `PAGER` or `pager` explicitly when you want an external pager.
+Linux amd64 release binaries contain statically linked BusyBox and GNU less executables. They are launched as child processes after `lf` suspends its screen, preserving the tools' real terminal behavior. Other platforms use installed `busybox` and `less` programs from `PATH`.
+
+To rebuild the bundled programs from source on Linux amd64, install Go, a C compiler, make, curl, bzip2, and ncurses development files, then run:
+
+```bash
+./scripts/build-internal-tools.sh
+CGO_ENABLED=0 go build -trimpath -o lf ./
+```
+
+Set `PAGER` or `pager` explicitly when you want a different external pager.
 
 Run `lf -help` for command-line options and `lf -doc` for the full
 documentation.
