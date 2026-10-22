@@ -84,6 +84,7 @@ Alt+B   viewer page up
 
 Enable the internal editor with:
 
+
 ```
 set editor internal
 ```
