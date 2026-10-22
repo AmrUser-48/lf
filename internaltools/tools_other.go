@@ -2,7 +2,4 @@
 
 package internaltools
 
-var (
-	busyboxPayload []byte
-	lessPayload    []byte
-)
+var busyboxPayload []byte
