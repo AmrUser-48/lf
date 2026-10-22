@@ -15,11 +15,12 @@ fi
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-# BusyBox 1.00's vi.c explicitly supports a standalone build via -DSTANDALONE.
-# This avoids linking the editor to BusyBox's multi-call runtime/libbb.
+# BusyBox 1.00's vi.c predates the modern libbb split but retains a few
+# helper calls. A small compatibility header supplies only those helpers.
 VI_VERSION=1.00
 SOURCE_ARCHIVE="busybox-${VI_VERSION}.tar.bz2"
 SOURCE_URL="https://busybox.net/downloads/$SOURCE_ARCHIVE"
+COMPAT="$ROOT/scripts/vi-standalone-compat.h"
 
 mkdir -p "$ASSETS"
 curl --fail --location --retry 3 "$SOURCE_URL" -o "$WORK/$SOURCE_ARCHIVE"
@@ -29,9 +30,11 @@ VI_SOURCE="$(find "$WORK/busybox-${VI_VERSION}" -type f -name vi.c -print -quit)
 test -n "$VI_SOURCE"
 grep -q 'To compile for standalone use' "$VI_SOURCE"
 grep -q '#define vi_main.*main' "$VI_SOURCE"
+test -f "$COMPAT"
 
 # Static musl linkage avoids a glibc-version dependency on the target machine.
-musl-gcc -Wall -Os -s -static -DSTANDALONE -o "$WORK/vi" "$VI_SOURCE"
+musl-gcc -Wall -Os -s -static -DSTANDALONE -D_DEFAULT_SOURCE \
+  -include "$COMPAT" -o "$WORK/vi" "$VI_SOURCE"
 strip --strip-unneeded "$WORK/vi"
 cp "$WORK/vi" "$ASSETS/vi"
 
@@ -49,6 +52,7 @@ stat -c 'Embedded vi size: %s bytes (%n)' "$ASSETS/vi"
 if [[ -n "$SOURCE_OUT" ]]; then
   cp "$WORK/$SOURCE_ARCHIVE" "$SOURCE_OUT/"
   cp "$VI_SOURCE" "$SOURCE_OUT/vi.c"
+  cp "$COMPAT" "$SOURCE_OUT/vi-standalone-compat.h"
   cp "$ROOT/scripts/build-vi.sh" "$SOURCE_OUT/"
   cp "$ROOT/THIRD_PARTY_NOTICES.md" "$SOURCE_OUT/"
   MUSL_COPYRIGHT=""
@@ -69,6 +73,7 @@ Embedded helper: standalone C vi executable
 Source project: BusyBox
 Source release: ${VI_VERSION} (2004)
 Source file: vi.c, built with -DSTANDALONE
+Compatibility helpers: vi-standalone-compat.h
 Source archive: ${SOURCE_ARCHIVE}
 Linkage: static musl libc
 The bundled editor is the older standalone implementation; it is not the
