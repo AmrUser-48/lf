@@ -21,4 +21,4 @@ On Linux amd64, install a C toolchain, make, curl, bzip2, and musl-tools, then r
 CGO_ENABLED=0 go build -trimpath -o lf ./
 ```
 
-The pager is not bundled. The `i` command uses `set pager`, then `PAGER`, and falls back to a system `less` executable.
+The `e` internal-editor command never falls back to a system editor: if the embedded standalone payload is absent, it returns an error. The pager is a separate, intentionally external facility. The `i` command uses `set pager`, then `PAGER`, and falls back to a system `less` executable.

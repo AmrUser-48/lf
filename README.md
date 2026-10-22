@@ -46,7 +46,7 @@ To rebuild the Linux amd64 binary with its embedded standalone editor, install G
 CGO_ENABLED=0 go build -trimpath -o lf ./
 ```
 
-On Unix, `CGO_ENABLED=0 go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest` builds `lf` without embedding the generated editor unless you run the helper build script first. In that case, the internal editor falls back to a system `vi`, or BusyBox `vi` if available.
+A source build does not silently substitute the system's `vi` or BusyBox. To use `set editor internal`, build the standalone editor on Linux amd64 with `./scripts/build-vi.sh` before building `lf`. Builds without the embedded payload report an explicit error; they never launch a different editor from `PATH`.
 
 On Windows `cmd`:
 
@@ -79,7 +79,7 @@ Enable the internal editor with:
 set editor internal
 ```
 
-Linux amd64 release binaries contain the statically linked standalone `vi` executable. Other platforms use `vi` from `PATH`, falling back to `busybox vi` if available. The pager is not bundled; it comes from `set pager`, `PAGER`, or the system `less` in `PATH`.
+Linux amd64 release binaries contain the statically linked standalone `vi` executable. Other builds do not substitute a system editor: the internal-editor command reports an error when no embedded payload is available. The pager is separate and external; it comes from `set pager`, `PAGER`, or the system `less` in `PATH`.
 
 Run `lf -help` for command-line options and `lf -doc` for the full
 documentation.

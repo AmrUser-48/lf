@@ -22,13 +22,7 @@ func Vi(filename string) (*exec.Cmd, func(), error) {
 		return exec.Command(path, filename), cleanup, nil
 	}
 
-	if path, err := exec.LookPath("vi"); err == nil {
-		return exec.Command(path, filename), noCleanup, nil
-	}
-	if path, err := exec.LookPath("busybox"); err == nil {
-		return exec.Command(path, "vi", filename), noCleanup, nil
-	}
-	return nil, noCleanup, fmt.Errorf("standalone vi payload is not built; run scripts/build-vi.sh or install vi or BusyBox in PATH")
+	return nil, noCleanup, fmt.Errorf("embedded standalone vi is unavailable in this build; run scripts/build-vi.sh on Linux amd64 and rebuild lf")
 }
 
 func materialize(payload []byte) (string, func(), error) {
