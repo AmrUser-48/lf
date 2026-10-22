@@ -16,23 +16,19 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
 BUSYBOX_VERSION=1.37.0
-LESS_VERSION=710
 BUSYBOX_ARCHIVE="busybox-${BUSYBOX_VERSION}.tar.bz2"
-LESS_ARCHIVE="less-${LESS_VERSION}.tar.gz"
 
 mkdir -p "$ASSETS"
 curl --fail --location --retry 3 "https://busybox.net/downloads/$BUSYBOX_ARCHIVE" -o "$WORK/$BUSYBOX_ARCHIVE"
-curl --fail --location --retry 3 "https://www.greenwoodsoftware.com/less/$LESS_ARCHIVE" -o "$WORK/$LESS_ARCHIVE"
-
 tar -xjf "$WORK/$BUSYBOX_ARCHIVE" -C "$WORK"
-tar -xzf "$WORK/$LESS_ARCHIVE" -C "$WORK"
 
 cd "$WORK/busybox-${BUSYBOX_VERSION}"
-make defconfig
-# This unrelated BusyBox 1.37.0 tc applet fails to build against newer kernel headers.
-# Disabling tc leaves the BusyBox vi applet and all its configured features intact.
-if grep -q '^CONFIG_TC=y$' .config; then
-  sed -i 's/^CONFIG_TC=y$/# CONFIG_TC is not set/' .config
+# Configure only the vi applet; do not bundle unrelated BusyBox utilities.
+make allnoconfig
+if grep -q '^# CONFIG_VI is not set$' .config; then
+  sed -i 's/^# CONFIG_VI is not set$/CONFIG_VI=y/' .config
+elif ! grep -q '^CONFIG_VI=y$' .config; then
+  printf '\nCONFIG_VI=y\n' >> .config
 fi
 if grep -q '^# CONFIG_STATIC is not set$' .config; then
   sed -i 's/^# CONFIG_STATIC is not set$/CONFIG_STATIC=y/' .config
@@ -46,40 +42,28 @@ grep -q '^CONFIG_VI=y$' .config
 grep -q '^CONFIG_STATIC=y$' .config
 make -j"$(nproc)"
 ./busybox --list | grep -qx vi
+test "$(./busybox --list | wc -l)" -eq 1
 strip --strip-unneeded ./busybox
 cp ./busybox "$ASSETS/busybox"
 
-cd "$WORK/less-${LESS_VERSION}"
-LDFLAGS="-static" ./configure --with-regex=posix
-# Build only the pager target, not unrelated lesskey/lessecho utilities.
-make -j"$(nproc)" less
-test -x ./less
-strip --strip-unneeded ./less
-cp ./less "$ASSETS/less"
-echo "Built GNU less payload: $ASSETS/less"
-
-for bin in "$ASSETS/busybox" "$ASSETS/less"; do
-  test -x "$bin"
-  if readelf -l "$bin" | grep -q 'INTERP'; then
-    echo "Expected a statically linked helper: $bin" >&2
-    exit 1
-  fi
-  file "$bin"
-  ls -lh "$bin"
-done
+test -x "$ASSETS/busybox"
+if readelf -l "$ASSETS/busybox" | grep -q 'INTERP'; then
+  echo "Expected a statically linked BusyBox: $ASSETS/busybox" >&2
+  exit 1
+fi
+file "$ASSETS/busybox"
+ls -lh "$ASSETS/busybox"
 
 if [[ -n "$SOURCE_OUT" ]]; then
   cp "$WORK/$BUSYBOX_ARCHIVE" "$SOURCE_OUT/"
-  cp "$WORK/$LESS_ARCHIVE" "$SOURCE_OUT/"
   cp "$WORK/busybox-${BUSYBOX_VERSION}/.config" "$SOURCE_OUT/busybox-${BUSYBOX_VERSION}.config"
   cp "$ROOT/scripts/build-internal-tools.sh" "$SOURCE_OUT/"
   cp "$ROOT/THIRD_PARTY_NOTICES.md" "$SOURCE_OUT/"
   cat > "$SOURCE_OUT/BUILD-INFO.txt" <<EOF
-Embedded helpers built on Linux amd64.
+Embedded helper built on Linux amd64.
 BusyBox version: ${BUSYBOX_VERSION}
-GNU less version: ${LESS_VERSION}
 BusyBox source archive: $BUSYBOX_ARCHIVE
-GNU less source archive: $LESS_ARCHIVE
+BusyBox applet configuration: vi only
 BusyBox configuration: busybox-${BUSYBOX_VERSION}.config
 EOF
 fi
