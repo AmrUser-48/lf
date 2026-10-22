@@ -27,6 +27,59 @@ tar -xzf "$WORK/$LESS_ARCHIVE" -C "$WORK"
 
 cd "$WORK/busybox-${BUSYBOX_VERSION}"
 make defconfig
+# BusyBox 1.37.0's unrelated tc applet fails with newer Linux headers.
+# It is not needed for vi; leave the vi applet and its default feature set intact.
+if grep -q '^CONFIG_TC=yif grep -q '^# CONFIG_STATIC is not set$' .config; then
+  sed -i 's/^# CONFIG_STATIC is not set$/CONFIG_STATIC=y/' .config
+elif grep -q '^CONFIG_STATIC=' .config; then
+  sed -i 's/^CONFIG_STATIC=.*/CONFIG_STATIC=y/' .config
+else
+  printf '\nCONFIG_STATIC=y\n' >> .config
+fi
+make oldconfig </dev/null
+grep -q '^CONFIG_VI=y$' .config
+grep -q '^CONFIG_STATIC=y$' .config
+make -j"$(nproc)"
+./busybox --list | grep -qx vi
+strip --strip-unneeded ./busybox
+cp ./busybox "$ASSETS/busybox"
+
+cd "$WORK/less-${LESS_VERSION}"
+LDFLAGS="-static" ./configure --with-regex=posix
+make -j"$(nproc)"
+strip --strip-unneeded ./less
+cp ./less "$ASSETS/less"
+
+for bin in "$ASSETS/busybox" "$ASSETS/less"; do
+  test -x "$bin"
+  if readelf -l "$bin" | grep -q 'INTERP'; then
+    echo "Expected a statically linked helper: $bin" >&2
+    exit 1
+  fi
+  file "$bin"
+  ls -lh "$bin"
+done
+
+if [[ -n "${SOURCE_OUT:-}" ]]; then
+  mkdir -p "$SOURCE_OUT"
+  SOURCE_OUT="$(cd "$SOURCE_OUT" && pwd)"
+  cp "$WORK/$BUSYBOX_ARCHIVE" "$SOURCE_OUT/"
+  cp "$WORK/$LESS_ARCHIVE" "$SOURCE_OUT/"
+  cp "$WORK/busybox-${BUSYBOX_VERSION}/.config" "$SOURCE_OUT/busybox-${BUSYBOX_VERSION}.config"
+  cp "$ROOT/scripts/build-internal-tools.sh" "$SOURCE_OUT/"
+  cp "$ROOT/THIRD_PARTY_NOTICES.md" "$SOURCE_OUT/"
+  cat > "$SOURCE_OUT/BUILD-INFO.txt" <<EOF
+Embedded helpers built on Linux amd64.
+BusyBox version: ${BUSYBOX_VERSION}
+GNU less version: ${LESS_VERSION}
+BusyBox source archive: $BUSYBOX_ARCHIVE
+GNU less source archive: $LESS_ARCHIVE
+BusyBox configuration: busybox-${BUSYBOX_VERSION}.config
+EOF
+fi
+ .config; then
+  sed -i 's/^CONFIG_TC=y$/# CONFIG_TC is not set/' .config
+fi
 if grep -q '^# CONFIG_STATIC is not set$' .config; then
   sed -i 's/^# CONFIG_STATIC is not set$/CONFIG_STATIC=y/' .config
 elif grep -q '^CONFIG_STATIC=' .config; then
