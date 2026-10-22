@@ -497,19 +497,6 @@ func (app *app) loop() {
 				}
 			}
 		case ev := <-app.ui.evChan:
-			wasEditor := app.ui.editor != nil
-			if app.ui.handleEditorEvent(ev) {
-				if wasEditor && app.ui.editor == nil {
-					app.nav.renew()
-					app.ui.loadFile(app, true)
-				}
-				app.ui.draw(app.nav)
-				continue
-			}
-			if app.ui.handlePagerEvent(ev) {
-				app.ui.draw(app.nav)
-				continue
-			}
 			e := app.ui.readEvent(ev, app.nav)
 			if e == nil {
 				continue
@@ -519,17 +506,6 @@ func (app *app) loop() {
 			for {
 				select {
 				case ev := <-app.ui.evChan:
-					wasEditor := app.ui.editor != nil
-					if app.ui.handleEditorEvent(ev) {
-						if wasEditor && app.ui.editor == nil {
-							app.nav.renew()
-							app.ui.loadFile(app, true)
-						}
-						continue
-					}
-					if app.ui.handlePagerEvent(ev) {
-						continue
-					}
 					e = app.ui.readEvent(ev, app.nav)
 					if e == nil {
 						continue

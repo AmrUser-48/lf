@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/clipperhouse/displaywidth"
+	"github.com/gokcehan/lf/internaltools"
 	"github.com/gdamore/tcell/v3"
 )
 
@@ -1129,9 +1130,16 @@ func (e *callExpr) eval(app *app, _ []string) {
 			return
 		}
 		if gOpts.editor == "internal" {
-			if err := app.ui.openEditor(path); err != nil {
+			cmd, cleanup, err := internaltools.Command("busybox-vi", path)
+			if err != nil {
 				app.ui.echoerrf("edit: %s", err)
+				return
 			}
+			defer cleanup()
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			app.runCmdSync(cmd, false)
 			return
 		}
 		if cmd, ok := gOpts.cmds["edit-external"]; ok {
@@ -1162,10 +1170,16 @@ func (e *callExpr) eval(app *app, _ []string) {
 			app.runCmdSync(cmd, false)
 			return
 		}
-		if err := app.ui.openPager(path); err != nil {
+		cmd, cleanup, err := internaltools.Command("less", path)
+		if err != nil {
 			app.ui.echoerrf("less: %s", err)
 			return
 		}
+		defer cleanup()
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		app.runCmdSync(cmd, false)
 	case "open":
 		curr := app.nav.currFile()
 		if curr == nil {
