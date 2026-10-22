@@ -1612,7 +1612,11 @@ func (ui *ui) suspend() error {
 }
 
 func (ui *ui) resume() error {
-	return ui.screen.Resume()
+	if err := ui.screen.Resume(); err != nil {
+		return err
+	}
+	ui.screen.Sync()
+	return nil
 }
 
 func (ui *ui) exportSizes() {
