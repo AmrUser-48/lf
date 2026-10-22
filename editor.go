@@ -761,8 +761,6 @@ func (ui *ui) openEditor(path string) error {
 	}
 	ui.editor = e
 	ui.pager = nil
-	ui.fileInfoPath = ""
-	ui.fileInfoReadyState = false
 	ui.sxScreen.forceClear = true
 	return nil
 }
@@ -772,8 +770,6 @@ func (ui *ui) closeEditor() {
 		return
 	}
 	ui.editor = nil
-	ui.fileInfoPath = ""
-	ui.fileInfoReadyState = false
 	ui.sxScreen.forceClear = true
 }
 
