@@ -1130,7 +1130,7 @@ func (e *callExpr) eval(app *app, _ []string) {
 			return
 		}
 		if gOpts.editor == "internal" {
-			cmd, cleanup, err := internaltools.Command("busybox-vi", path)
+			cmd, cleanup, err := internaltools.Vi(path)
 			if err != nil {
 				app.ui.echoerrf("edit: %s", err)
 				return
