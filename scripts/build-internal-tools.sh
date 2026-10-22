@@ -37,7 +37,9 @@ elif grep -q '^CONFIG_STATIC=' .config; then
 else
   printf '\nCONFIG_STATIC=y\n' >> .config
 fi
-make oldconfig </dev/null
+# BusyBox has additional defaulted Kconfig symbols (e.g. FEATURE_VI_MAX_LEN).
+# Feed empty answers so oldconfig selects each symbol's documented default.
+make oldconfig < <(yes '')
 grep -q '^CONFIG_VI=y$' .config
 grep -q '^CONFIG_STATIC=y$' .config
 make -j"$(nproc)"
