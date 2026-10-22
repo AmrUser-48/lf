@@ -3,6 +3,13 @@ set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ASSETS="$ROOT/internaltools/assets"
+if [[ -n "${SOURCE_OUT:-}" ]]; then
+  if [[ "$SOURCE_OUT" != /* ]]; then
+    SOURCE_OUT="$ROOT/$SOURCE_OUT"
+  fi
+  mkdir -p "$SOURCE_OUT"
+  SOURCE_OUT="$(cd "$SOURCE_OUT" && pwd)"
+fi
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
