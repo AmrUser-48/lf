@@ -17,7 +17,7 @@ scriptable, and fast.
 ## Features
 
 - Cross-platform: Linux, macOS, BSDs, and Windows
-- Single native binary; Linux amd64 release embeds statically linked upstream terminal tools
+- Single native binary; Linux amd64 release embeds a statically linked upstream BusyBox vi executable
 - Asynchronous filesystem and preview work to keep the UI responsive
 - Server/client architecture for multiple connected instances
 - Configurable commands, shell integration, keybindings, colors, and icons
@@ -28,12 +28,11 @@ scriptable, and fast.
 This branch keeps the upstream `lf` design while adding:
 
 - Lazy filesystem metadata: ordinary directory entries can be displayed using `DirEntry` information without an immediate `Lstat` for every file.
-- The default `i` viewer runs genuine upstream GNU `less`, bundled into Linux amd64 releases.
-- `set pager PROGRAM` continues to select an explicitly configured external pager.
-- `set editor internal` runs genuine BusyBox `vi`; the Linux amd64 release bundles the upstream BusyBox executable.
-- Both tools take over the terminal while running and return to `lf` on exit; they are not Go-language imitations.
+- The `i` viewer uses an external pager: `set pager PROGRAM`, then `PAGER`, then `less` from `PATH`.
+- `set editor internal` runs the genuine BusyBox `vi` applet; the Linux amd64 release bundles BusyBox with only the `vi` applet enabled.
+- BusyBox `vi` takes over the terminal while running and returns to `lf` on exit; it is not a Go-language imitation.
 
-The bundled BusyBox and GNU less programs are separate executable payloads, not linked into the Go application. Their source archives, build configuration, build script, and license information are provided in the release's `lf-third-party-sources.tar.gz` asset. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The bundled BusyBox executable is built separately and embedded as data, not linked into the Go application. Its upstream source archive, exact build configuration, build script, and license information are provided in the release's `lf-third-party-sources.tar.gz` asset. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Installation
 
@@ -70,7 +69,7 @@ The default internal shortcuts added by this fork are:
 
 ```
 e       edit current file
-i       view current file with upstream GNU less
+i       view current file with the configured/system pager
 ```
 
 Enable the bundled BusyBox `vi` editor with:
@@ -79,9 +78,9 @@ Enable the bundled BusyBox `vi` editor with:
 set editor internal
 ```
 
-Linux amd64 release binaries contain statically linked BusyBox and GNU less executables. They are launched as child processes after `lf` suspends its screen, preserving the tools' real terminal behavior. Other platforms use installed `busybox` and `less` programs from `PATH`.
+Linux amd64 release binaries contain a statically linked BusyBox executable with only the `vi` applet enabled. It is launched as a child process after `lf` suspends its screen, preserving BusyBox `vi`'s actual behavior. Other platforms use a system `busybox` executable from `PATH`. The pager is not bundled; it comes from `set pager`, `PAGER`, or the system `less` in `PATH`.
 
-To rebuild the bundled programs from source on Linux amd64, install Go, a C compiler, make, curl, bzip2, and ncurses development files, then run:
+To rebuild the bundled programs from source on Linux amd64, install Go, a C compiler, make, curl, and bzip2, then run:
 
 ```bash
 ./scripts/build-internal-tools.sh
