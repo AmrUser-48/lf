@@ -11,8 +11,8 @@ import (
 
 var noCleanup = func() {}
 
-// Vi returns the bundled standalone C editor when built for Linux amd64.
-// Other builds use vi from PATH, falling back to BusyBox vi if available.
+// Vi returns the bundled standalone C editor when its payload is embedded.
+// Builds without the payload fail explicitly instead of launching a system editor.
 func Vi(filename string) (*exec.Cmd, func(), error) {
 	if bytes.HasPrefix(viPayload, []byte{0x7f, 'E', 'L', 'F'}) {
 		path, cleanup, err := materialize(viPayload)
