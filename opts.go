@@ -126,8 +126,6 @@ var gOpts struct {
 	preserve         []string
 	preview          bool
 	previewer        string
-	pager            string
-	editor           string
 	promptfmt        string
 	ratios           []int
 	relativenumber   bool
@@ -289,7 +287,6 @@ func init() {
 	gOpts.preserve = []string{"mode"}
 	gOpts.preview = true
 	gOpts.previewer = ""
-	gOpts.pager = ""
 	gOpts.promptfmt = "\033[32;1m%u@%h\033[0m:\033[34;1m%d\033[0m\033[1m%f\033[0m"
 	gOpts.ratios = []int{1, 2, 3}
 	gOpts.relativenumber = false
@@ -452,7 +449,6 @@ func init() {
 	}
 
 	gOpts.cmds = make(map[string]expr)
-	gOpts.cmds["less"] = &callExpr{"less", nil, 1}
 	gOpts.user = make(map[string]string)
 
 	gLocalOpts.dircounts = make(map[string]bool)

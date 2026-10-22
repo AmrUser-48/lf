@@ -17,36 +17,29 @@ scriptable, and fast.
 ## Features
 
 - Cross-platform: Linux, macOS, BSDs, and Windows
-- Single native binary; Linux amd64 release embeds a statically linked standalone C `vi` executable
+- Single native binary
 - Asynchronous filesystem and preview work to keep the UI responsive
 - Server/client architecture for multiple connected instances
 - Configurable commands, shell integration, keybindings, colors, and icons
-- Vi-style navigation with Normal and Visual modes
 
 ## This fork
 
 This branch keeps the upstream `lf` design while adding:
 
 - Lazy filesystem metadata: ordinary directory entries can be displayed using `DirEntry` information without an immediate `Lstat` for every file.
-- The `i` viewer uses an external pager: `set pager PROGRAM`, then `PAGER`, then `less` from `PATH`.
-- `set editor internal` launches the standalone upstream BusyBox `vi.c` implementation, compiled as its own executable rather than as a BusyBox multi-call binary.
-- The bundled editor is C, not a Go imitation. It is the older BusyBox 1.00 (2004) standalone implementation, so its feature set differs from the current BusyBox applet.
-
-The Linux amd64 `lf` release embeds the static `vi` executable and extracts it to a private temporary directory only while the editor runs. The release's `lf-third-party-sources.tar.gz` asset contains the upstream source archive, standalone source file, build script, and license notices. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Installation
 
 Pre-built Linux and Windows binaries are published in the
 [releases](https://github.com/AmrUser-48/lf/releases).
 
-To rebuild the Linux amd64 binary with its embedded standalone editor, install Go, a C compiler, make, curl, bzip2, and musl-tools, then run:
+To build from source, install [Go](https://go.dev/).
+
+On Unix:
 
 ```bash
-./scripts/build-vi.sh
-CGO_ENABLED=0 go build -trimpath -o lf ./
+env CGO_ENABLED=0 go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest
 ```
-
-A source build does not silently substitute the system's `vi` or BusyBox. To use `set editor internal`, build the standalone editor on Linux amd64 with `./scripts/build-vi.sh` before building `lf`. Builds without the embedded payload report an explicit error; they never launch a different editor from `PATH`.
 
 On Windows `cmd`:
 
@@ -66,25 +59,10 @@ go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest
 
 Run `lf` to start in the current directory.
 
-The default internal shortcuts added by this fork are:
-
-```
-e       edit current file
-i       view current file with the configured/system pager
-```
-
-Enable the internal editor with:
-
-```
-set editor internal
-```
-
-Linux amd64 release binaries contain the statically linked standalone `vi` executable. Other builds do not substitute a system editor: the internal-editor command reports an error when no embedded payload is available. The pager is separate and external; it comes from `set pager`, `PAGER`, or the system `less` in `PATH`.
-
 Run `lf -help` for command-line options and `lf -doc` for the full
 documentation.
 
-See [etc](etc) for shell/editor integrations and example configuration files.
+See [etc](etc) for shell integrations and example configuration files.
 
 ## Contributing
 

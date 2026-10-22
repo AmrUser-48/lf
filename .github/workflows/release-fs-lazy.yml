@@ -3,7 +3,7 @@ name: Release fs-lazy
 on:
   push:
     branches:
-      - test/fs-lazy
+      - 'test/fs-lazy'
   workflow_dispatch:
 
 permissions:
@@ -22,18 +22,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Install helper build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential curl bzip2 musl-tools
-
-      - name: Build standalone vi and collect source
-        env:
-          SOURCE_OUT: dist/third-party-source
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          ./scripts/build-vi.sh
-          tar -czf dist/lf-third-party-sources.tar.gz -C dist/third-party-source .
-
       - name: Test
         run: go test ./...
 
@@ -43,6 +31,7 @@ jobs:
           TAG: r42-fs-lazy.2
         run: |
           set -euo pipefail
+          mkdir -p dist
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1 \
             go build -trimpath -ldflags="-s -w -X main.gVersion=${TAG}" \
             -o dist/lf-linux-amd64 ./
@@ -74,5 +63,4 @@ jobs:
             --title "lf $TAG" \
             --generate-notes \
             dist/lf-linux-amd64 \
-            dist/lf-windows-amd64.exe \
-            dist/lf-third-party-sources.tar.gz
+            dist/lf-windows-amd64.exe

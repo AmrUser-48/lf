@@ -21,22 +21,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Install helper build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential curl bzip2 musl-tools
-
-      - name: Build standalone vi
-        run: ./scripts/build-vi.sh
-
-      - name: Verify bundled vi is static
-        shell: bash
-        run: |
-          set -euo pipefail
-          file internaltools/assets/vi
-          if readelf -l internaltools/assets/vi | grep -q 'INTERP'; then
-            echo "vi helper must be statically linked" >&2
-            exit 1
-          fi
-
       - name: Test
         run: go test ./...
 

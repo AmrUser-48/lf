@@ -16,7 +16,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/clipperhouse/displaywidth"
-	"github.com/gokcehan/lf/internaltools"
 	"github.com/gdamore/tcell/v3"
 )
 
@@ -339,16 +338,6 @@ func (e *setExpr) eval(app *app, _ []string) {
 			}
 		}
 		gOpts.preserve = toks
-	case "pager":
-		gOpts.pager = replaceTilde(e.val)
-	case "editor":
-		switch e.val {
-		case "", "external", "internal":
-			gOpts.editor = e.val
-		default:
-			app.ui.echoerr("editor: value should be empty, 'external', or 'internal'")
-			return
-		}
 	case "previewer":
 		gOpts.previewer = replaceTilde(e.val)
 	case "promptfmt":
@@ -1110,75 +1099,6 @@ func (e *callExpr) eval(app *app, _ []string) {
 		app.ui.loadFile(app, true)
 		restartIncCmd(app)
 		onChdir(app)
-	case "edit":
-		if len(e.args) > 1 {
-			app.ui.echoerr("edit: too many arguments")
-			return
-		}
-		path := ""
-		if len(e.args) == 1 {
-			path = replaceTilde(e.args[0])
-		} else if curr := app.nav.currFile(); curr != nil {
-			path = curr.path
-			if curr.IsDir() {
-				app.ui.echoerr("edit: selected path is a directory")
-				return
-			}
-		}
-		if path == "" {
-			app.ui.echoerr("edit: no file selected")
-			return
-		}
-		if gOpts.editor == "internal" {
-			cmd, cleanup, err := internaltools.Vi(path)
-			if err != nil {
-				app.ui.echoerrf("edit: %s", err)
-				return
-			}
-			defer cleanup()
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			app.runCmdSync(cmd, false)
-			return
-		}
-		if cmd, ok := gOpts.cmds["edit-external"]; ok {
-			cmd.eval(app, e.args)
-			return
-		}
-		app.ui.echoerr("edit: external editor command is unavailable")
-	case "less":
-		path := ""
-		if len(e.args) > 1 {
-			app.ui.echoerr("less: too many arguments")
-			return
-		}
-		if len(e.args) == 1 {
-			path = replaceTilde(e.args[0])
-		} else if curr := app.nav.currFile(); curr != nil {
-			path = curr.path
-		}
-		if path == "" {
-			app.ui.echoerr("less: no file selected")
-			return
-		}
-		pager := gOpts.pager
-		if pager == "" {
-			pager = os.Getenv("PAGER")
-		}
-		if pager == "" {
-			pager = "less"
-		}
-		args := strings.Fields(pager)
-		if len(args) == 0 {
-			app.ui.echoerr("less: pager command is empty")
-			return
-		}
-		cmd := exec.Command(args[0], append(args[1:], path)...)
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		app.runCmdSync(cmd, false)
 	case "open":
 		curr := app.nav.currFile()
 		if curr == nil {
