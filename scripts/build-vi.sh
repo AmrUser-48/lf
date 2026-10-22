@@ -37,6 +37,7 @@ musl-gcc -Wall -Os -s -static -DSTANDALONE -D_DEFAULT_SOURCE \
   -include "$COMPAT" -o "$WORK/vi" "$VI_SOURCE"
 strip --strip-unneeded "$WORK/vi"
 cp "$WORK/vi" "$ASSETS/vi"
+chmod 0755 "$ASSETS/vi"
 
 test -x "$ASSETS/vi"
 if readelf -l "$ASSETS/vi" | grep -q 'INTERP'; then
