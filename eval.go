@@ -1162,20 +1162,19 @@ func (e *callExpr) eval(app *app, _ []string) {
 			app.ui.echoerr("less: no file selected")
 			return
 		}
-		if gOpts.pager != "" {
-			cmd := exec.Command(gOpts.pager, path)
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			app.runCmdSync(cmd, false)
+		pager := gOpts.pager
+		if pager == "" {
+			pager = os.Getenv("PAGER")
+		}
+		if pager == "" {
+			pager = "less"
+		}
+		args := strings.Fields(pager)
+		if len(args) == 0 {
+			app.ui.echoerr("less: pager command is empty")
 			return
 		}
-		cmd, cleanup, err := internaltools.Command("less", path)
-		if err != nil {
-			app.ui.echoerrf("less: %s", err)
-			return
-		}
-		defer cleanup()
+		cmd := exec.Command(args[0], append(args[1:], path)...)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
