@@ -27,6 +27,16 @@ jobs:
       - name: Build bundled BusyBox vi
         run: ./scripts/build-internal-tools.sh
 
+      - name: Verify bundled BusyBox contains only vi
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(./internaltools/assets/busybox --list)" = "vi"
+          if readelf -l internaltools/assets/busybox | grep -q 'INTERP'; then
+            echo "BusyBox helper must be statically linked" >&2
+            exit 1
+          fi
+
       - name: Test
         run: go test ./...
 
