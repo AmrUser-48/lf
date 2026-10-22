@@ -28,7 +28,7 @@ jobs:
       - name: Build Linux binary
         shell: bash
         env:
-          TAG: r42-fs-lazy.2
+          TAG: r42-fs-lazy.3
         run: |
           set -euo pipefail
           mkdir -p dist
@@ -39,7 +39,7 @@ jobs:
       - name: Build Windows binary
         shell: bash
         env:
-          TAG: r42-fs-lazy.2
+          TAG: r42-fs-lazy.3
         run: |
           set -euo pipefail
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GOAMD64=v1 \
@@ -56,7 +56,7 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: r42-fs-lazy.2
+          TAG: r42-fs-lazy.3
         run: |
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \
