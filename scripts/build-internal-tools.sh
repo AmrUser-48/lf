@@ -51,9 +51,12 @@ cp ./busybox "$ASSETS/busybox"
 
 cd "$WORK/less-${LESS_VERSION}"
 LDFLAGS="-static" ./configure --with-regex=posix
-make -j"$(nproc)"
+# Build only the pager target, not unrelated lesskey/lessecho utilities.
+make -j"$(nproc)" less
+test -x ./less
 strip --strip-unneeded ./less
 cp ./less "$ASSETS/less"
+echo "Built GNU less payload: $ASSETS/less"
 
 for bin in "$ASSETS/busybox" "$ASSETS/less"; do
   test -x "$bin"
