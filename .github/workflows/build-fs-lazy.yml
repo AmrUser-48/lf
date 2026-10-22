@@ -22,9 +22,9 @@ jobs:
           go-version-file: go.mod
 
       - name: Install helper build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential libncurses-dev curl bzip2
+        run: sudo apt-get update && sudo apt-get install -y build-essential curl bzip2
 
-      - name: Build bundled BusyBox vi and GNU less
+      - name: Build bundled BusyBox vi
         run: ./scripts/build-internal-tools.sh
 
       - name: Test
