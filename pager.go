@@ -159,8 +159,6 @@ func (ui *ui) closePager() {
 	}
 	ui.pager.close()
 	ui.pager = nil
-	ui.fileInfoPath = ""
-	ui.fileInfoReadyState = false
 }
 
 func (ui *ui) handlePagerEvent(ev tcell.Event) bool {
