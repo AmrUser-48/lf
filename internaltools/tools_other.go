@@ -2,4 +2,4 @@
 
 package internaltools
 
-var busyboxPayload []byte
+var viPayload []byte

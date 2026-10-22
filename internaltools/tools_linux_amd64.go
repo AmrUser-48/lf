@@ -4,6 +4,6 @@ package internaltools
 
 import _ "embed"
 
-// The build script replaces this placeholder with the pinned upstream BusyBox binary.
-//go:embed assets/busybox
-var busyboxPayload []byte
+// The build script replaces this placeholder with the statically linked standalone vi binary.
+//go:embed assets/vi
+var viPayload []byte

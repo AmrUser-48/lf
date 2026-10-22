@@ -22,18 +22,18 @@ jobs:
           go-version-file: go.mod
 
       - name: Install helper build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential curl bzip2
+        run: sudo apt-get update && sudo apt-get install -y build-essential curl bzip2 musl-tools
 
-      - name: Build bundled BusyBox vi
-        run: ./scripts/build-internal-tools.sh
+      - name: Build standalone vi
+        run: ./scripts/build-vi.sh
 
-      - name: Verify bundled BusyBox contains only vi
+      - name: Verify bundled vi is static
         shell: bash
         run: |
           set -euo pipefail
-          test "$(./internaltools/assets/busybox --list)" = "vi"
-          if readelf -l internaltools/assets/busybox | grep -q 'INTERP'; then
-            echo "BusyBox helper must be statically linked" >&2
+          file internaltools/assets/vi
+          if readelf -l internaltools/assets/vi | grep -q 'INTERP'; then
+            echo "vi helper must be statically linked" >&2
             exit 1
           fi
 

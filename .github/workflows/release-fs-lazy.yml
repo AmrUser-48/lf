@@ -23,15 +23,15 @@ jobs:
           go-version-file: go.mod
 
       - name: Install helper build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential curl bzip2
+        run: sudo apt-get update && sudo apt-get install -y build-essential curl bzip2 musl-tools
 
-      - name: Build BusyBox vi and collect its source
+      - name: Build standalone vi and collect source
         env:
           SOURCE_OUT: dist/third-party-source
         run: |
           set -euo pipefail
           mkdir -p dist
-          ./scripts/build-internal-tools.sh
+          ./scripts/build-vi.sh
           tar -czf dist/lf-third-party-sources.tar.gz -C dist/third-party-source .
 
       - name: Test
@@ -43,9 +43,8 @@ jobs:
           TAG: r42-fs-lazy.2
         run: |
           set -euo pipefail
-          mkdir -p dist
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1 \
-            go build -trimpath -ldflags="-s -w -X main.gVersion=$TAG" \
+            go build -trimpath -ldflags="-s -w -X main.gVersion=${TAG}" \
             -o dist/lf-linux-amd64 ./
 
       - name: Build Windows binary
@@ -55,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GOAMD64=v1 \
-            go build -trimpath -ldflags="-s -w -X main.gVersion=$TAG" \
+            go build -trimpath -ldflags="-s -w -X main.gVersion=${TAG}" \
             -o dist/lf-windows-amd64.exe ./
 
       - name: Verify artifacts

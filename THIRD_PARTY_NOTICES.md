@@ -1,19 +1,23 @@
 # Third-party terminal editor
 
-## BusyBox vi
+## BusyBox standalone vi.c
 
-The Linux amd64 release embeds the upstream BusyBox 1.37.0 multi-call executable with only the `vi` applet enabled. The Go application extracts this executable into a private temporary directory and runs `busybox vi FILE` as a child process, then removes the temporary directory after the editor exits.
+The Linux amd64 release embeds a separate, statically linked executable compiled from the standalone `vi.c` in BusyBox 1.00 (released in 2004). The source explicitly supports standalone compilation through `-DSTANDALONE`; it does not require BusyBox's multi-call runtime or `libbb`. This old implementation is not feature-identical to the current BusyBox `vi` applet.
 
-BusyBox is licensed under GPL-2.0. The `lf-third-party-sources.tar.gz` release asset contains the exact upstream source archive, the generated BusyBox configuration, this notice, and the build script used to create the executable. The source archive includes the applicable license text.
+The editor source was written by Sterling Huxley and is licensed under GPL-2.0-or-later, as stated in the source. The `lf-third-party-sources.tar.gz` release asset includes the complete upstream BusyBox 1.00 source archive, the extracted `vi.c`, the build script, and this notice.
 
-Source archive: https://busybox.net/downloads/busybox-1.37.0.tar.bz2
+Source archive: https://busybox.net/downloads/busybox-1.00.tar.bz2
+
+## Static C runtime
+
+The editor is statically linked against musl libc to avoid a target glibc version dependency. musl is MIT-licensed; the source bundle includes the musl copyright notice provided by the build environment.
 
 ## Rebuilding
 
-On Linux amd64, install a C toolchain, make, curl, and bzip2, then run:
+On Linux amd64, install a C toolchain, make, curl, bzip2, and musl-tools, then run:
 
 ```bash
-./scripts/build-internal-tools.sh
+./scripts/build-vi.sh
 CGO_ENABLED=0 go build -trimpath -o lf ./
 ```
 

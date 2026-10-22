@@ -17,7 +17,7 @@ scriptable, and fast.
 ## Features
 
 - Cross-platform: Linux, macOS, BSDs, and Windows
-- Single native binary; Linux amd64 release embeds a statically linked upstream BusyBox vi executable
+- Single native binary; Linux amd64 release embeds a statically linked standalone C `vi` executable
 - Asynchronous filesystem and preview work to keep the UI responsive
 - Server/client architecture for multiple connected instances
 - Configurable commands, shell integration, keybindings, colors, and icons
@@ -29,23 +29,24 @@ This branch keeps the upstream `lf` design while adding:
 
 - Lazy filesystem metadata: ordinary directory entries can be displayed using `DirEntry` information without an immediate `Lstat` for every file.
 - The `i` viewer uses an external pager: `set pager PROGRAM`, then `PAGER`, then `less` from `PATH`.
-- `set editor internal` runs the genuine BusyBox `vi` applet; the Linux amd64 release bundles BusyBox with only the `vi` applet enabled.
-- BusyBox `vi` takes over the terminal while running and returns to `lf` on exit; it is not a Go-language imitation.
+- `set editor internal` launches the standalone upstream BusyBox `vi.c` implementation, compiled as its own executable rather than as a BusyBox multi-call binary.
+- The bundled editor is C, not a Go imitation. It is the older BusyBox 1.00 (2004) standalone implementation, so its feature set differs from the current BusyBox applet.
 
-The bundled BusyBox executable is built separately and embedded as data, not linked into the Go application. Its upstream source archive, exact build configuration, build script, and license information are provided in the release's `lf-third-party-sources.tar.gz` asset. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The Linux amd64 `lf` release embeds the static `vi` executable and extracts it to a private temporary directory only while the editor runs. The release's `lf-third-party-sources.tar.gz` asset contains the upstream source archive, standalone source file, build script, and license notices. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Installation
 
 Pre-built Linux and Windows binaries are published in the
 [releases](https://github.com/AmrUser-48/lf/releases).
 
-To build from source, install [Go](https://go.dev/).
-
-On Unix:
+To rebuild the Linux amd64 binary with its embedded standalone editor, install Go, a C compiler, make, curl, bzip2, and musl-tools, then run:
 
 ```bash
-env CGO_ENABLED=0 go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest
+./scripts/build-vi.sh
+CGO_ENABLED=0 go build -trimpath -o lf ./
 ```
+
+On Unix, `CGO_ENABLED=0 go install -trimpath -ldflags="-s -w" github.com/AmrUser-48/lf@latest` builds `lf` without embedding the generated editor unless you run the helper build script first. In that case, the internal editor falls back to a system `vi`, or BusyBox `vi` if available.
 
 On Windows `cmd`:
 
@@ -72,22 +73,13 @@ e       edit current file
 i       view current file with the configured/system pager
 ```
 
-Enable the bundled BusyBox `vi` editor with:
+Enable the internal editor with:
 
 ```
 set editor internal
 ```
 
-Linux amd64 release binaries contain a statically linked BusyBox executable with only the `vi` applet enabled. It is launched as a child process after `lf` suspends its screen, preserving BusyBox `vi`'s actual behavior. Other platforms use a system `busybox` executable from `PATH`. The pager is not bundled; it comes from `set pager`, `PAGER`, or the system `less` in `PATH`.
-
-To rebuild the bundled programs from source on Linux amd64, install Go, a C compiler, make, curl, and bzip2, then run:
-
-```bash
-./scripts/build-internal-tools.sh
-CGO_ENABLED=0 go build -trimpath -o lf ./
-```
-
-Set `PAGER` or `pager` explicitly when you want a different external pager.
+Linux amd64 release binaries contain the statically linked standalone `vi` executable. Other platforms use `vi` from `PATH`, falling back to `busybox vi` if available. The pager is not bundled; it comes from `set pager`, `PAGER`, or the system `less` in `PATH`.
 
 Run `lf -help` for command-line options and `lf -doc` for the full
 documentation.
