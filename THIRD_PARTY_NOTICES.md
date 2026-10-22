@@ -1,15 +1,20 @@
-# Third-party terminal tools
-
-The Linux amd64 release embeds two upstream executables as data and launches them as separate child processes. Their C code is not linked into the Go program.
+# Third-party terminal editor
 
 ## BusyBox vi
 
-The editor payload is built from BusyBox 1.37.0. The BusyBox project is licensed under GPL-2.0. The build script uses the upstream release archive at https://busybox.net/downloads/busybox-1.37.0.tar.bz2 and records the exact BusyBox build configuration in the release source bundle. The bundled executable is the BusyBox multi-call binary; lf invokes its `vi` applet.
+The Linux amd64 release embeds the upstream BusyBox 1.37.0 multi-call executable with only the `vi` applet enabled. The Go application extracts this executable into a private temporary directory and runs `busybox vi FILE` as a child process, then removes the temporary directory after the editor exits.
 
-## GNU less
+BusyBox is licensed under GPL-2.0. The `lf-third-party-sources.tar.gz` release asset contains the exact upstream source archive, the generated BusyBox configuration, this notice, and the build script used to create the executable. The source archive includes the applicable license text.
 
-The pager payload is built from GNU less 710, released on 17 September 2026. Less is distributed under either the GNU GPL version 3 or later, or the separate Less License; see the `LICENSE` and `COPYING` files in the upstream source archive. Source archive: https://www.greenwoodsoftware.com/less/less-710.tar.gz
+Source archive: https://busybox.net/downloads/busybox-1.37.0.tar.bz2
 
 ## Rebuilding
 
-The release's `lf-third-party-sources.tar.gz` asset contains the exact upstream source archives, the BusyBox `.config`, this notice, and the helper build script. Run `scripts/build-internal-tools.sh` on Linux amd64 with a C toolchain, make, curl, bzip2, and ncurses development files to rebuild the embedded payloads. The Go program extracts them into a private temporary directory for execution and removes that directory when the child exits.
+On Linux amd64, install a C toolchain, make, curl, and bzip2, then run:
+
+```bash
+./scripts/build-internal-tools.sh
+CGO_ENABLED=0 go build -trimpath -o lf ./
+```
+
+The pager is not bundled. The `i` command uses `set pager`, then `PAGER`, and falls back to a system `less` executable.
