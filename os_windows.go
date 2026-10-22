@@ -17,7 +17,6 @@ var (
 	envOpener = os.Getenv("OPENER")
 	envEditor = os.Getenv("VISUAL")
 	envPager  = os.Getenv("PAGER")
-	envPagerExplicit = os.Getenv("PAGER") != ""
 	envShell  = os.Getenv("SHELL")
 )
 
@@ -153,14 +152,6 @@ func shellKill(cmd *exec.Cmd) error {
 
 func setDefaults() {
 	gOpts.cmds["open"] = &execExpr{"&", "%OPENER% %f%"}
-	gOpts.cmds["edit-external"] = &execExpr{"$", "%EDITOR% %f%"}
-	gOpts.nkeys["e"] = &callExpr{"edit", nil, 1}
-	gOpts.vkeys["e"] = &callExpr{"edit", nil, 1}
-	gOpts.nkeys["i"] = &callExpr{"less", nil, 1}
-	gOpts.vkeys["i"] = &callExpr{"less", nil, 1}
-	if envPagerExplicit {
-		gOpts.pager = envPager
-	}
 	gOpts.nkeys["w"] = &execExpr{"$", "%SHELL%"}
 	gOpts.vkeys["w"] = &execExpr{"$", "%SHELL%"}
 
