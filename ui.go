@@ -23,7 +23,6 @@ import (
 )
 
 const previewLoadingDelay = 100 * time.Millisecond
-const fileInfoDelay = 1500 * time.Millisecond
 
 type win struct {
 	w, h, x, y int
@@ -554,9 +553,6 @@ type ui struct {
 	rulerErr    error              // `rulerfile` parse error (if any)
 	currentFile string             // last path passed to `on-select`
 	editor      *internalEditor
-	fileInfoPath string
-	fileInfoReadyState bool
-	fileInfoTimer *time.Timer
 	pager         *pager
 	pasteEvent  bool               // whether paste event is active (to ignore pasted input in Normal mode)
 }
@@ -576,9 +572,7 @@ func newUI(screen tcell.Screen) *ui {
 		icons:       parseIcons(),
 		currentFile: "",
 		sxScreen:    sixelScreen{},
-		fileInfoTimer:  time.NewTimer(time.Hour),
 	}
-	ui.fileInfoTimer.Stop()
 	ui.ruler, ui.rulerErr = parseRuler(gOpts.rulerfile)
 
 	return ui
@@ -740,36 +734,9 @@ func formatRulerOpt(name, val string) string {
 	return val
 }
 
-// Deprecated: Will eventually be replaced by drawRulerFile
-func (ui *ui) fileInfoReady(nav *nav) bool {
-	curr := nav.currFile()
-	path := ""
-	if curr != nil {
-		path = curr.path
-	}
-	if path != ui.fileInfoPath {
-		ui.fileInfoPath = path
-		ui.fileInfoReadyState = false
-		if !ui.fileInfoTimer.Stop() {
-			select {
-			case <-ui.fileInfoTimer.C:
-			default:
-			}
-		}
-		if path != "" {
-			ui.fileInfoTimer.Reset(fileInfoDelay)
-		}
-	}
-	return ui.fileInfoReadyState
-}
-
 func (ui *ui) drawStat(nav *nav) {
 	if ui.msg != "" {
 		ui.msgWin.print(ui.screen, 0, 0, tcell.StyleDefault, ui.msg)
-		return
-	}
-
-	if !ui.fileInfoReady(nav) {
 		return
 	}
 
@@ -939,7 +906,7 @@ func (ui *ui) drawRulerFile(nav *nav) {
 
 	var stat *statData
 	curr := nav.currFile()
-	if curr != nil && ui.fileInfoReady(nav) {
+	if curr != nil {
 		curr.ensureTimes()
 		curr.ensureLinkTarget()
 		if curr.err == nil {
